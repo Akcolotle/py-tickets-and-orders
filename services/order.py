@@ -1,27 +1,27 @@
+from datetime import datetime
+from typing import List, Dict, Optional
+
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import QuerySet
-from typing import Optional
 
 from db.models import Order, Ticket
 
 
 @transaction.atomic
 def create_order(
-        tickets: list,
-        username: str,
-        date: str = None
+    tickets: List[Dict[str, int]],
+    username: str,
+    date: Optional[datetime] = None
 ) -> Order:
     user = get_user_model().objects.get(username=username)
 
-    order = Order.objects.create(
-        user=user
-    )
+    order_data = {"user": user}
 
-    if date:
-        order.created_at = date
+    if date is not None:
+        order_data["created_at"] = date
 
-    order.save()
+    order = Order.objects.create(**order_data)
 
     for ticket_data in tickets:
         Ticket.objects.create(
@@ -32,7 +32,6 @@ def create_order(
         )
 
     return order
-
 
 def get_orders(username: Optional[str] = None) -> QuerySet[Order]:
     if username:
