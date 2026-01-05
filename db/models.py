@@ -93,9 +93,10 @@ class Ticket(models.Model):
         ]
 
     def __str__(self) -> str:
+        session = self.movie_session
         return (
-            f"{self.movie_session.movie.title} "
-            f"{self.movie_session.show_time.replace(tzinfo=None)} "
+            f"{session.movie.title} "
+            f"{session.show_time.replace(tzinfo=None)} "
             f"(row: {self.row}, seat: {self.seat})"
         )
 

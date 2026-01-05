@@ -20,7 +20,7 @@ def get_movies(
     if title is not None:
         queryset = queryset.filter(title__icontains=title)
 
-    return queryset
+    return queryset.distinct().order_by("id")
 
 
 def get_movie_by_id(movie_id: int) -> Movie:
@@ -39,10 +39,10 @@ def create_movie(
         description=movie_description
     )
 
-    if genres_ids:
+    if genres_ids is not None:
         movie.genres.set(genres_ids)
 
-    if actors_ids:
+    if actors_ids is not None:
         movie.actors.set(actors_ids)
 
     return movie

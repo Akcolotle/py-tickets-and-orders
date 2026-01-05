@@ -2,6 +2,7 @@ from typing import List, Optional, Dict
 from datetime import date, datetime
 from db.models import MovieSession, Ticket
 from django.db.models import QuerySet
+from django.db.models import Count, F
 
 
 def create_movie_session(
@@ -16,12 +17,17 @@ def create_movie_session(
     )
 
 
-def get_movies_sessions(session_date: Optional[date] = None)\
-        -> QuerySet[MovieSession]:
+def get_movies_sessions(
+    session_date: Optional[date] = None,
+    movie_id: Optional[int] = None
+) -> QuerySet[MovieSession]:
     queryset = MovieSession.objects.all()
 
     if session_date:
         queryset = queryset.filter(show_time__date=session_date)
+
+    if movie_id:
+        queryset = queryset.filter(movie_id=movie_id)
 
     return queryset
 
@@ -59,3 +65,17 @@ def delete_movie_session_by_id(session_id: int) -> None:
 def get_taken_seats(movie_session_id: int) -> List[Dict[str, int]]:
     tickets = Ticket.objects.filter(movie_session_id=movie_session_id)
     return [{"row": ticket.row, "seat": ticket.seat} for ticket in tickets]
+
+
+def get_movies_sessions_with_available_tickets(
+    session_date: Optional[date] = None,
+    movie_id: Optional[int] = None
+) -> QuerySet[MovieSession]:
+    return (
+        get_movies_sessions(session_date=session_date, movie_id=movie_id)
+        .annotate(
+            tickets_available=(
+                F("cinema_hall__capacity") - Count("tickets")
+            )
+        )
+    )
